@@ -29,3 +29,28 @@ app.post('/api/execute-shell', (req, res) => {
 app.listen(port, () => {
   console.log(`서버가 http://localhost:${port}에서 실행 중입니다.`);
 });
+const WebSocket = require('ws');
+
+// WebSocket 서버 생성
+const wss = new WebSocket.Server({ port: 4000 });
+
+wss.on('connection', ws => {
+  console.log('새로운 클라이언트가 연결되었습니다.');
+
+  ws.on('message', message => {
+    console.log(`클라이언트로부터 메시지 받음: ${message}`);
+
+    // 받은 명령어를 실행
+    exec(message, (error, stdout, stderr) => {
+      if (error) {
+        ws.send(`exec error: ${error.message}`);
+        return;
+      }
+      if (stderr) {
+        ws.send(`stderr: ${stderr}`);
+        return;
+      }
+      ws.send(stdout);
+    });
+  });
+});
