@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>쉘 명령어 실행기</title>
+  <title>실시간 쉘 명령어</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -57,35 +57,27 @@
 <body>
 
   <div class="container">
-    <h2>쉘 명령어 실행기</h2>
+    <h2>실시간 쉘 명령어</h2>
     <textarea id="shellInput" class="shell" placeholder="명령어를 입력하세요..."></textarea>
     <button onclick="executeCommand()">명령어 실행</button>
     <div id="output" class="output"></div>
   </div>
 
   <script>
+    const socket = new WebSocket('ws://localhost:4000');
+
+    socket.onmessage = function(event) {
+      document.getElementById('output').textContent = event.data;
+    };
+
     function executeCommand() {
       const command = document.getElementById('shellInput').value;
       if (!command) {
         alert("명령어를 입력하세요!");
         return;
       }
-      
-      // 서버로 명령어를 전송
-      fetch('https://your-vercel-app.vercel.app/api/execute-shell', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ command: command })
-      })
-      .then(response => response.json())
-      .then(data => {
-        document.getElementById('output').textContent = data.output || data.error;
-      })
-      .catch(error => {
-        document.getElementById('output').textContent = '오류 발생: ' + error.message;
-      });
+
+      socket.send(command);
     }
   </script>
 
